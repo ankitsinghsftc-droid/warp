@@ -1,0 +1,82 @@
+name: Build Warp
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build
+        run: cargo build --release --bin Warp
+
+      - name: Package
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force dist
+          Copy-Item target\release\Warp.exe dist\Warp.exe
+          Compress-Archive -Path dist\Warp.exe -DestinationPath Warp-Windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Warp-Windows-x64
+          path: Warp-Windows-x64.zip
+
+  macos-arm:
+    name: macOS Apple Silicon
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build
+        run: cargo build --release --bin Warp
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/release/Warp dist/Warp
+          chmod +x dist/Warp
+          cd dist
+          zip ../Warp-macOS-Apple-Silicon.zip Warp
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Warp-macOS-Apple-Silicon
+          path: Warp-macOS-Apple-Silicon.zip
+
+  macos-intel:
+    name: macOS Intel
+    runs-on: macos-15-intel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build
+        run: cargo build --release --bin Warp
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/release/Warp dist/Warp
+          chmod +x dist/Warp
+          cd dist
+          zip ../Warp-macOS-Intel.zip Warp
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Warp-macOS-Intel
+          path: Warp-macOS-Intel.zip
